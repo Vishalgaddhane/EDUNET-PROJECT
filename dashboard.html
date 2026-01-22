@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f6f8; margin: 0; padding: 0; }
+        
+        .navbar { 
+            display: flex; justify-content: space-between; align-items: center; 
+            background: white; padding: 15px 30px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+            position: sticky; top: 0; z-index: 100;
+        }
+        .btn { background: #007bff; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; }
+        .btn:hover { background: #0056b3; }
+
+        .post-container {
+            max-width: 500px; 
+            margin: 30px auto; 
+        }
+        
+        .form-card {
+            background: white; padding: 25px; 
+            border-radius: 8px; border-top: 4px solid #28a745; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        input, select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+
+        .job-container {
+            max-width: 1200px;
+            margin: 0 auto; 
+            padding: 20px;
+        }
+
+        .job-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .job-card {
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            border-top: 4px solid #007bff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        h2 { text-align: center; margin: 30px 0; color: #333; }
+        h3 { margin: 0 0 10px 0; font-size: 18px; }
+        p { margin: 5px 0; color: #555; font-size: 14px; }
+        
+        .tag { background: #e3f2fd; color: #007bff; padding: 3px 8px; border-radius: 10px; font-size: 12px; }
+        .green { color: #28a745; font-weight: bold; }
+        .red { color: #dc3545; font-weight: bold; }
+        
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div style="font-size:20px; font-weight:bold; color:#007bff;">PartTimePortal</div>
+        <div style="display:flex; align-items:center; gap:15px;">
+            <span>Hello, <b>{{ user.name }}</b> ({{ user.role }})</span>
+            <a href="/logout/" class="btn" style="background:#dc3545;">Logout</a>
+        </div>
+    </div>
+
+    {% if user.role == 'Employer' %}
+    <div class="post-container">
+        <div class="form-card">
+            <h3 style="text-align:center;">Post a New Job</h3>
+            <form action="/post_job/" method="POST">
+                {% csrf_token %}
+                <label>Job Title</label><input type="text" name="title" placeholder="e.g. Shop Helper" required>
+                <label>Location</label><input type="text" name="location" required>
+                <label>Date</label><input type="date" name="date" required>
+                <label>Workers</label><input type="number" name="required" placeholder="1" required>
+                <label>Pay</label><input type="number" name="pay" placeholder="500" required>
+                <label>Type</label><select name="type"><option>Fixed Price</option><option>Hourly Rate</option></select>
+                <label>Category</label><select name="category"><option>General</option><option>Student</option></select>
+                <button type="submit" class="btn" style="width:100%; margin-top:10px; background:#28a745;">Publish Job</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="job-container">
+        <h2>Available Jobs</h2>
+        
+        <div class="job-grid">
+            {% for job in jobs %}
+            <div class="job-card">
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3>{{ job.title }}</h3>
+                        <span class="tag">{{ job.category }}</span>
+                    </div>
+                    <p class="green" style="font-size:16px;">Amount ₹{{ job.pay }} {{ job.pay_type }}</p>
+                    <p>📍location {{ job.location }}</p>
+                    <p>📅date {{ job.date }}</p>
+                    <p style="color:#007bff; font-weight:bold;">Vacancy: {{ job.applicant_count }} / {{ job.required_workers }}</p>
+                </div>
+
+                <div style="margin-top:15px; border-top:1px solid #eee; padding-top:10px;">
+                    {% if user.role == 'Worker' %}
+                        {% if user in job.applicants.all %}
+                            <p class="green">✅ Application Sent!</p>
+                            <p style="font-size:13px;">👤 <b>{{ job.employer.name }}</b></p>
+                            <p style="font-size:13px;">📞 <b>{{ job.employer.phone }}</b></p>
+                        {% elif job.is_full %}
+                            <button class="btn" style="width:100%; background:#ccc; cursor:not-allowed;" disabled>Job Full</button>
+                        {% else %}
+                            <a href="/apply/{{ job.id }}/" class="btn" style="display:block; text-align:center;">Apply Now</a>
+                        {% endif %}
+                    
+                    {% else %}
+                        <p style="font-size:13px; font-weight:bold;">Applicants:</p>
+                        <ul style="font-size:12px; padding-left:20px; color:#555;">
+                            {% for applicant in job.applicants.all %}
+                                <li>{{ applicant.name }} ({{ applicant.phone }})</li>
+                            {% empty %}
+                                <li>No applicants yet.</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+                <p style="text-align:center; grid-column: 1 / -1;">No jobs available.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+</html>

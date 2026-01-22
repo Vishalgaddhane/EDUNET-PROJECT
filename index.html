@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f6f8; display: flex; justify-content: center; height: 100vh; align-items: center; }
+        .box { background: white; padding: 30px; border-radius: 8px; width: 350px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        input, select, button { width: 100%; padding: 10px; margin: 10px 0; }
+        button { background: #007bff; color: white; border: none; cursor: pointer; }
+        .error { color: red; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2 style="text-align:center">Part Time job Portal</h2>
+        
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <form action="/register/" method="POST">
+            {% csrf_token %} 
+            <input type="text" name="name" placeholder="Vishal Gaddhane" required>
+            <input type="text" name="phone" placeholder="Phone Number" required>
+            <input type="date" name="dob" required>
+            <select name="role">
+                <option value="Worker">Worker</option>
+                <option value="Employer">Employer</option>
+            </select>
+            <select name="category">
+                <option value="General">General</option>
+                <option value="Student">Student</option>
+            </select>
+            <button type="submit">Register & Enter</button>
+        </form>
+    </div>
+</body>
+</html>
